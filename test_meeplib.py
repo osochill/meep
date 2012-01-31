@@ -40,5 +40,11 @@ class TestMeepLib(unittest.TestCase):
         assert len(meeplib._users) == 0
         assert len(meeplib._user_ids) == 0
 
+    def test_get_next_user_id(self):
+	
+	print meeplib._get_next_user_id();
+		
+	
+	
 if __name__ == '__main__':
     unittest.main()
