@@ -1,0 +1,10 @@
+go http://localhost:8000/
+follow "Log in"
+
+fv 1 user 'admin'
+fv 1 pass 'admin'
+submit
+
+url /login_action
+find 'Log out'
+
