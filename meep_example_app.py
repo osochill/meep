@@ -1,7 +1,8 @@
 import meeplib
 import traceback
 import cgi
-
+import meepcookie
+from jinja2 import Environment, FileSystemLoader
 
 def initialize():
     # create a default user
@@ -12,22 +13,30 @@ def initialize():
 
     # done.
 
+env = Environment(loader=FileSystemLoader('templates'))
+
+def render_page(filename, **variables):
+    template = env.get_template(filename)
+    x = template.render(**variables)
+    return str(x)
+
 class MeepExampleApp(object):
     """
     WSGI app object.
     """
     def index(self, environ, start_response):
-		username = 'test'
-	
-		start_response("200 OK", [('Content-type', 'text/html')])
-		return ["""You are not logged in, please login below.<p><a href='/m/add'>Add a message</a><p><a href='/login'>Log in</a><p><a href='/logout'>Log out</a><p><a href='/m/list'>Show messages</a><p>"""]
+      username = 'N/A'
+
+      start_response("200 OK", [('Content-type', 'text/html')])
+      return [ render_page('index.html', username=username) ]
+		#return ["""You are not logged in, please login below.<p><a href='/m/add'>Add a message</a><p><a href='/login'>Log in</a><p><a href='/logout'>Log out</a><p><a href='/m/list'>Show messages</a><p>"""]
 
     def login(self, environ, start_response):
         headers = [('Content-type', 'text/html')]
         
         start_response("200 OK", headers)
-
-        return """<form action='login_action' method='POST'>Username: <input type='text' name='user'><br>Password:<input type='password' name='pass'><br><input type='submit'></form>"""
+        return [ render_page('login.html')]
+       # return """<form action='login_action' method='POST'>Username: <input type='text' name='user'><br>Password:<input type='password' name='pass'><br><input type='submit'></form>"""
 
     def login_message_action(self, environ, start_response):
         print environ['wsgi.input']
@@ -35,7 +44,7 @@ class MeepExampleApp(object):
 
         username = form['user'].value
         password = form['pass'].value
-	
+
 	headers = [('Content-type', 'text/html')]
 	print password
 	print username
@@ -48,6 +57,21 @@ class MeepExampleApp(object):
 		start_response("302 Found", headers)  
 		return ["""Authentication Failed, please try again<p><a href='/m/add'>Add a message</a><p><a href='/login'>Log in</a><p><a href='/logout'>Log out</a><p><a href='/m/list'>Show messages</a><p>"""]
 
+        # set content-type
+        headers = [('Content-type', 'text/html')]
+
+        cookie_name, cookie_val = \
+                     meepcookie.make_set_cookie_header('username',
+                                                       user.username)
+        headers.append((cookie_name, cookie_val))
+        
+        # send back a redirect to '/'
+        k = 'Location'
+        v = '/'
+        headers.append((k, v))
+        start_response('302 Found', headers)
+        
+        return "no such content"
 
     def logout(self, environ, start_response):
         # does nothing
@@ -115,11 +139,10 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         
         start_response("200 OK", headers)
-        form_code = """<form action='add_action' method='POST'>Title: <input type='text' name='title'><br>Message:<input type='text' name='message'><br><input type='submit'><input type='hidden' name='reply' value='%i'></form>""" % reply_id
+        form_code = """<form action='add_action' method='GET'>Title: <input type='text' name='title'><br>Message:<input type='text' name='message'><br><input type='submit'><input type='hidden' name='reply' value='%i'></form>""" % reply_id
         return form_code
 
     def add_message_action(self, environ, start_response):
-        print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         if ('title' in form):
             title = form['title'].value
