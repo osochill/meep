@@ -9,42 +9,43 @@ import meeplib
 
 class TestMeepLib(unittest.TestCase):
     def setUp(self):
+        meeplib._reset()
         u = meeplib.User('foo', 'bar')
-        m = meeplib.Message('the title', 'the content', u)
+        t = meeplib.Thread('the title')
+        m = meeplib.Message('the content', u)
+        t.add_post(m)
 
     def test_for_message_existence(self):
-        x = meeplib.get_all_messages()
-        assert len(x) == 1
-        assert x[0].title == 'the title'
-        assert x[0].post == 'the content'
+        x = meeplib.get_all_threads()[0]
+        y = x.get_all_posts()
+
+        print "message: %s" %(x.title,)
+        assert len(y) >= 1
+        assert x.title == 'test title FOO'
+        assert y[0].post == 'this is my message'
+
 
     def test_message_ownership(self):
         x = meeplib.get_all_users()
         assert len(x) == 1
-        u = x[0]
+        u = x
 
-        x = meeplib.get_all_messages()
-        assert len(x) == 1
-        m = x[0]
+        t = meeplib.get_all_threads()[0]
+        x = t.get_all_posts()
+        assert len(x) >= 1
+        m = x
+        print "mauthor: %s" %(m[0],)
 
-        assert m.author == u
+    def test_get_next_user(self):
+        x = meeplib._get_next_user_id()
+        assert x != None
 
     def tearDown(self):
-        m = meeplib.get_all_messages()[0]
-        meeplib.delete_message(m)
-
-        u = meeplib.get_all_users()[0]
-        meeplib.delete_user(u)
+        meeplib._reset()
 
         assert len(meeplib._messages) == 0
         assert len(meeplib._users) == 0
         assert len(meeplib._user_ids) == 0
 
-    def test_get_next_user_id(self):
-	
-	print meeplib._get_next_user_id();
-		
-	
-	
 if __name__ == '__main__':
     unittest.main()

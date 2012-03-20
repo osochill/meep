@@ -1,8 +1,17 @@
 from Cookie import SimpleCookie
 
-def set_cookie(name, value, path='/'):
-	cookie = SimpleCookie()
-	cookie[name] = value
-	cookie[name]['path'] = path
-	
-	
+def make_set_cookie_header(name, value, path='/'):
+    """
+    Makes a 'Set-Cookie' header.
+    
+    """
+    c = SimpleCookie()
+    c[name] = value
+    c[name]['path'] = path
+    
+    # can also set expires and other stuff.  See
+    # Examples under http://docs.python.org/library/cookie.html.
+
+    s = c.output()
+    (key, value) = s.split(': ')
+    return (key, value)
