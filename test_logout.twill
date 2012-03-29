@@ -1,6 +1,0 @@
-go http://localhost:8000/
-follow "Log out"
-
-url /
-find 'Log in'
-
